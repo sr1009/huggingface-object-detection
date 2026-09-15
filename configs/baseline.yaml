@@ -1,0 +1,16 @@
+experiment_name: svhn_detr_baseline
+
+dataset:
+  name: ufldl-stanford/svhn
+  config: full_numbers
+
+model:
+  name: facebook/detr-resnet-50
+
+training:
+  epochs: 3
+  batch_size: 4
+  learning_rate: 0.00001
+  weight_decay: 0.0001
+
+seed: 42
