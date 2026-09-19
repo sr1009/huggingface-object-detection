@@ -19,7 +19,15 @@ from torch.utils.data import DataLoader
 
 from src.data import DetrCollator, create_processor
 from src.models import create_detr_model
-from src.training import save_checkpoint, set_seed, train
+from src.training import (
+    log_checkpoint,
+    log_config,
+    log_epoch_metrics,
+    save_checkpoint,
+    set_seed,
+    start_experiment,
+    train,
+)
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
@@ -108,6 +116,69 @@ def create_optimizer(
         weight_decay=training_config["weight_decay"],
     )
 
+def train_experiment(
+    config: dict[str, Any],
+    processor: Any,
+    collator: DetrCollator,
+    train_loader: DataLoader,
+    val_loader: DataLoader,
+    device: torch.device,
+    smoke_test: bool,
+) -> None:
+    """Create the model, train it, and log the experiment."""
+
+    model_config = config["model"]
+
+    model = create_detr_model(
+        model_name=model_config["name"],
+        num_labels=model_config["num_labels"],
+    )
+
+    model.to(device)
+
+    optimizer = create_optimizer(
+        model=model,
+        config=config,
+    )
+
+    epochs = config["training"]["epochs"]
+
+    if smoke_test:
+        epochs = 1
+
+    history = train(
+        model=model,
+        train_dataloader=train_loader,
+        val_dataloader=val_loader,
+        optimizer=optimizer,
+        device=device,
+        epochs=epochs,
+    )
+
+    for result in history:
+        log_epoch_metrics(
+            epoch=int(result["epoch"]),
+            train_loss=result["train_loss"],
+            val_loss=result["val_loss"],
+        )
+
+    output_dir = Path("outputs") / config["experiment_name"]
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    checkpoint_path = output_dir / "checkpoint.pt"
+
+    save_checkpoint(
+        model=model,
+        optimizer=optimizer,
+        epoch=epochs,
+        history=history,
+        path=checkpoint_path,
+        config=config,
+    )
+
+    log_checkpoint(checkpoint_path)
+
+    print(f"Checkpoint saved to: {checkpoint_path}")
 
 def run_experiment(
     config: dict[str, Any],
@@ -122,6 +193,16 @@ def run_experiment(
     )
 
     print(f"Device: {device}")
+
+    experiment_name = config["experiment_name"]
+
+    with start_experiment(
+        experiment_name=experiment_name,
+        run_name=experiment_name,
+    ):
+        log_config(config)
+
+    # rest of the experiment goes here
 
     model_config = config["model"]
 
@@ -163,6 +244,13 @@ def run_experiment(
         epochs=epochs,
     )
 
+    for result in history:
+        log_epoch_metrics(
+            epoch=int(result["epoch"]),
+            train_loss=result["train_loss"],
+            val_loss=result["val_loss"],
+    )
+
     output_dir = Path("outputs") / config["experiment_name"]
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -176,6 +264,8 @@ def run_experiment(
         path=checkpoint_path,
         config=config,
     )
+
+    log_checkpoint(checkpoint_path)
 
     print(f"Checkpoint saved to: {checkpoint_path}")
     print("Experiment completed.")
