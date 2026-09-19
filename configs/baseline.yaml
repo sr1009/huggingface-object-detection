@@ -3,9 +3,11 @@ experiment_name: svhn_detr_baseline
 dataset:
   name: ufldl-stanford/svhn
   config: full_numbers
+  validation_fraction: 0.10
 
 model:
   name: facebook/detr-resnet-50
+  num_labels: 10
 
 training:
   epochs: 3
