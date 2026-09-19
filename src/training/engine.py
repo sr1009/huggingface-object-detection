@@ -1,23 +1,13 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import Callable, Any
 
 import torch
-from torch.utils.data import DataLoader
 
 from .utils import move_batch_to_device
 
 
-def train_one_epoch(
-    model: torch.nn.Module,
-    dataloader: DataLoader,
-    optimizer: torch.optim.Optimizer,
-    device: torch.device,
-) -> float:
-    """
-    Train the model for one epoch.
-
-    Returns:
-        Average training loss for the epoch.
-    """
+def train_one_epoch(model, dataloader, optimizer, device):
     model.train()
 
     total_loss = 0.0
@@ -35,28 +25,17 @@ def train_one_epoch(
         )
 
         loss = outputs.loss
-
         loss.backward()
         optimizer.step()
 
         total_loss += loss.item()
         num_batches += 1
 
-    if num_batches == 0:
-        raise RuntimeError("Training dataloader produced no batches.")
-
     return total_loss / num_batches
 
 
 @torch.no_grad()
-def evaluate_loss(
-    model: torch.nn.Module,
-    dataloader: DataLoader,
-    device: torch.device,
-) -> float:
-    """
-    Evaluate average DETR loss without updating model parameters.
-    """
+def evaluate_loss(model, dataloader, device):
     model.eval()
 
     total_loss = 0.0
@@ -74,57 +53,89 @@ def evaluate_loss(
         total_loss += outputs.loss.item()
         num_batches += 1
 
-    if num_batches == 0:
-        raise RuntimeError("Evaluation dataloader produced no batches.")
-
     return total_loss / num_batches
 
 
 def train(
-    model: torch.nn.Module,
-    train_dataloader: DataLoader,
-    val_dataloader: DataLoader,
-    optimizer: torch.optim.Optimizer,
-    device: torch.device,
-    epochs: int,
-) -> list[dict[str, float]]:
-    """
-    Train a model for multiple epochs and evaluate on validation data.
-
-    Returns:
-        A list containing training and validation loss for each epoch.
-    """
-    if epochs < 1:
-        raise ValueError("epochs must be at least 1.")
-
-    history: list[dict[str, float]] = []
+    model,
+    train_loader,
+    val_loader,
+    optimizer,
+    device,
+    epochs,
+    epoch_callback=None,
+):
+    history = []
+    best_metric = float("-inf")
+    best_model_state = None
 
     for epoch in range(1, epochs + 1):
         train_loss = train_one_epoch(
-            model=model,
-            dataloader=train_dataloader,
-            optimizer=optimizer,
-            device=device,
+            model,
+            train_loader,
+            optimizer,
+            device,
         )
 
         val_loss = evaluate_loss(
-            model=model,
-            dataloader=val_dataloader,
-            device=device,
+            model,
+            val_loader,
+            device,
         )
 
-        epoch_result = {
-            "epoch": float(epoch),
+        metrics = {
+            "epoch": epoch,
             "train_loss": train_loss,
             "val_loss": val_loss,
         }
 
-        history.append(epoch_result)
+        if epoch_callback is not None:
+            extra_metrics = epoch_callback(
+                epoch,
+                train_loss,
+                val_loss,
+            )
 
-        print(
+            if extra_metrics:
+                metrics.update(extra_metrics)
+
+        current_metric = metrics.get("val_map")
+
+        if current_metric is not None and current_metric > best_metric:
+            best_metric = current_metric
+
+            best_model_state = {
+                key: value.detach().cpu().clone()
+                for key, value in model.state_dict().items()
+            }
+
+            metrics["is_best"] = True
+        else:
+            metrics["is_best"] = False
+
+        history.append(metrics)
+
+        metric_text = (
             f"Epoch {epoch}/{epochs} | "
             f"train_loss={train_loss:.4f} | "
             f"val_loss={val_loss:.4f}"
         )
+
+        if "val_map" in metrics:
+            metric_text += f" | val_mAP={metrics['val_map']:.4f}"
+
+        if "val_map_50" in metrics:
+            metric_text += f" | val_AP50={metrics['val_map_50']:.4f}"
+
+        if "val_map_75" in metrics:
+            metric_text += f" | val_AP75={metrics['val_map_75']:.4f}"
+
+        if metrics["is_best"]:
+            metric_text += " | BEST"
+
+        print(metric_text)
+
+    if best_model_state is not None:
+        model.load_state_dict(best_model_state)
 
     return history

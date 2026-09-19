@@ -3,6 +3,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import mlflow
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 if str(PROJECT_ROOT) not in sys.path:
@@ -29,6 +31,7 @@ from src.training import (
     train,
 )
 
+from src.evaluation.metrics import evaluate_map
 
 def load_config(path: str | Path) -> dict[str, Any]:
     """Load experiment configuration from a YAML file."""
@@ -235,13 +238,41 @@ def run_experiment(
     if smoke_test:
         epochs = 1
 
+    def evaluate_epoch(epoch, train_loss, val_loss):
+        map_metrics = evaluate_map(
+            model=model,
+            dataloader=val_loader,
+            processor=processor,
+            device=device,
+        )
+        
+
+        mlflow.log_metrics(
+            {
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "val_mAP": map_metrics["map"],
+                "val_AP50": map_metrics["map_50"],
+                "val_AP75": map_metrics["map_75"],
+            },
+            step=epoch,
+        )
+
+        return {
+            "val_map": map_metrics["map"],
+            "val_map_50": map_metrics["map_50"],
+            "val_map_75": map_metrics["map_75"],
+        }
+
+
     history = train(
         model=model,
-        train_dataloader=train_loader,
-        val_dataloader=val_loader,
+        train_loader=train_loader,
+        val_loader=val_loader,
         optimizer=optimizer,
         device=device,
-        epochs=epochs,
+        epochs=config["training"]["epochs"],
+        epoch_callback=evaluate_epoch,
     )
 
     for result in history:
