@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pyexpat import model
 import sys
 from pathlib import Path
 
@@ -155,7 +156,7 @@ def train_experiment(
         val_dataloader=val_loader,
         optimizer=optimizer,
         device=device,
-        epochs=epochs,
+        epochs=config["training"]["epochs"],
     )
 
     for result in history:
@@ -285,14 +286,18 @@ def run_experiment(
     output_dir = Path("outputs") / config["experiment_name"]
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    checkpoint_path = output_dir / "checkpoint.pt"
+    best_epoch = max(
+    history,
+    key=lambda item: item["val_map"],
+    )
+
+    checkpoint_path = output_dir / "best_checkpoint.pt"
 
     save_checkpoint(
         model=model,
         optimizer=optimizer,
-        epoch=epochs,
+        epoch=best_epoch["epoch"],
         history=history,
-        path=checkpoint_path,
         config=config,
     )
 
