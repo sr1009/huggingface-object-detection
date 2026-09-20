@@ -156,7 +156,7 @@ def train_experiment(
         val_dataloader=val_loader,
         optimizer=optimizer,
         device=device,
-        epochs=config["training"]["epochs"],
+        epochs=epochs,
     )
 
     for result in history:
@@ -272,7 +272,7 @@ def run_experiment(
         val_loader=val_loader,
         optimizer=optimizer,
         device=device,
-        epochs=config["training"]["epochs"],
+        epochs=epochs,
         epoch_callback=evaluate_epoch,
     )
 
@@ -298,6 +298,7 @@ def run_experiment(
         optimizer=optimizer,
         epoch=best_epoch["epoch"],
         history=history,
+        path=checkpoint_path,
         config=config,
     )
 
