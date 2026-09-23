@@ -73,6 +73,19 @@ def create_data_loaders(
     train_split = train_val["train"]
     val_split = train_val["test"]
 
+    max_train_samples = dataset_config.get("max_train_samples")
+    max_val_samples = dataset_config.get("max_val_samples")
+
+    if max_train_samples is not None:
+        train_split = train_split.select(
+            range(min(max_train_samples, len(train_split)))
+        )
+
+    if max_val_samples is not None:
+        val_split = val_split.select(
+            range(min(max_val_samples, len(val_split)))
+        )
+
     if smoke_test:
         train_split = train_split.select(
             range(min(8, len(train_split)))
