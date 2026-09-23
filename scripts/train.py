@@ -57,12 +57,11 @@ def create_data_loaders(
     dataset_config = config["dataset"]
     training_config = config["training"]
 
-    dataset = load_dataset(
+    train_dataset = load_dataset(
         dataset_config["name"],
         dataset_config["config"],
+        split="train",
     )
-
-    train_dataset = dataset["train"]
 
     validation_fraction = dataset_config["validation_fraction"]
 
