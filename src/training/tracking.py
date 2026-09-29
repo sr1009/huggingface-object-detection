@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -11,10 +12,20 @@ def start_experiment(
     run_name: str | None = None,
 ) -> mlflow.ActiveRun:
     """
-    Start an MLflow run.
+    Start or reuse an MLflow run.
 
-    Uses the local MLflow tracking store by default.
+    Local execution:
+        Creates/uses the requested experiment and starts a new run.
+
+    Azure ML execution:
+        Reuses the MLflow run automatically provided by Azure ML.
     """
+    if mlflow.active_run() is not None:
+        return mlflow.active_run()
+
+    if "MLFLOW_RUN_ID" in __import__("os").environ:
+        return mlflow.start_run()
+
     mlflow.set_experiment(experiment_name)
 
     return mlflow.start_run(run_name=run_name)
@@ -62,7 +73,10 @@ def log_epoch_metrics(
 
 def log_checkpoint(path: str | Path) -> None:
     """
-    Log a checkpoint file as an MLflow artifact.
+    Log a checkpoint locally with MLflow.
+
+    Azure ML jobs persist files written under ./outputs automatically,
+    so checkpoint artifact logging through MLflow is skipped on Azure.
     """
     path = Path(path)
 
@@ -70,6 +84,13 @@ def log_checkpoint(path: str | Path) -> None:
         raise FileNotFoundError(
             f"Checkpoint does not exist: {path}"
         )
+
+    if os.getenv("AZUREML_RUN_ID"):
+        print(
+            "Azure ML detected: checkpoint will be persisted "
+            "through ./outputs instead of MLflow artifact logging."
+        )
+        return
 
     mlflow.log_artifact(
         str(path),

@@ -124,7 +124,14 @@ def evaluate_map(
         targets = build_targets(batch["labels"])
 
         metric.update(
-            predictions,
+            [
+                {
+                    "boxes": prediction["boxes"].cpu(),
+                    "scores": prediction["scores"].cpu(),
+                    "labels": prediction["labels"].cpu(),
+                }
+                for prediction in predictions
+            ],
             targets,
         )
 

@@ -235,3 +235,6 @@ venv/
 # MLflow
 mlflow.db
 mlruns/
+
+# Local GPU virtual environment
+.venv-gpu/

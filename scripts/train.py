@@ -18,6 +18,7 @@ from typing import Any
 import torch
 import yaml
 from datasets import load_dataset
+from huggingface_hub import hf_hub_url
 from torch.utils.data import DataLoader
 
 from src.data import DetrCollator, create_processor
@@ -57,9 +58,15 @@ def create_data_loaders(
     dataset_config = config["dataset"]
     training_config = config["training"]
 
+    train_parquet_url = hf_hub_url(
+    repo_id=dataset_config["name"],
+    filename=f"{dataset_config['config']}/train-00000-of-00001.parquet",
+    repo_type="dataset",
+    )
+
     train_dataset = load_dataset(
-        dataset_config["name"],
-        dataset_config["config"],
+        "parquet",
+        data_files=train_parquet_url,
         split="train",
     )
 
