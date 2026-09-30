@@ -76,25 +76,25 @@ huggingface-object-detection/
 
 Install the required dependencies:
 
-\`\`\`bash
+```bash
 pip install -r requirements.txt
-\`\`\`
+```
 
 Run the main training script:
 
-\`\`\`bash
+```bash
 python scripts/train.py
-\`\`\`
+```
 
 Baseline DETR configuration file:
 
-\`\`\`
+```
 configs/baseline.yaml
-\`\`\`
+```
 
 ## Baseline Configuration
 
-\`\`\`yaml
+```yaml
 model:
   name: facebook/detr-resnet-50
   num_labels: 10
@@ -106,21 +106,21 @@ training:
   weight_decay: 0.0001
 
 seed: 42
-\`\`\`
+```
 
 ## Notebooks
 
 Exploratory data analysis:
 
-\`\`\`
+```
 notebooks/01_eda_svhn.ipynb
-\`\`\`
+```
 
 Prediction visualization:
 
-\`\`\`
+```
 scripts/visualize_predictions.py
-\`\`\`
+```
 
 ---
 
@@ -142,12 +142,12 @@ Due to GPU quota limitations in the Azure for Students subscription, the main Az
 
 Azure ML validation scripts:
 
-\`\`\`
+```
 azureml/
 ├── data_test/
 ├── env_test/
 └── smoke_test/
-\`\`\`
+```
 
 ---
 
@@ -156,9 +156,9 @@ azureml/
 The project uses configuration files and fixed random seeds to ensure reproducible experiments.  
 The main DETR configuration (seed = 42) is stored in:
 
-\`\`\`
+```
 configs/baseline.yaml
-\`\`\`
+```
 
 The training pipeline includes:
 
