@@ -126,3 +126,35 @@ huggingface-object-detection/
 ├── README.md
 ├── requirements.txt
 └── environment.yml
+```
+
+## Limitations
+- The experiments should not be interpreted as a perfectly controlled architecture benchmark, since the models were trained with different dataset splits, numbers of epochs, batch sizes, learning rates, GPUs, and computational budgets.
+- The Stage 1 experiments used model-specific learning-rate and weight-decay configurations rather than one identical optimization configuration for every architecture.
+- Computational resources were limited, which influenced the amount of data, number of epochs, and hardware that could be used for individual experiments.
+- The final DETR experiment was therefore designed as a focused follow-up experiment, rather than a fully controlled re-training of every architecture under the same full-data conditions.
+## Conclusion
+- The experiments followed a two-stage workflow: model comparison and hyperparameter experimentation, followed by a focused full-data DETR experiment.
+- Stage 1 provided a practical comparison of several modern object-detection architectures while allowing model-specific optimization settings to be explored.
+- The subsequent DETR experiment investigated the effect of increasing the available training data and training duration.
+- The results should not be interpreted as a perfectly controlled architecture benchmark, since the models were trained with different dataset splits, numbers of epochs, batch sizes, learning rates, GPUs, and computational budgets.
+- The extensive smoke testing performed by the team helped validate data loading, preprocessing, model initialization, training, evaluation, and checkpointing before the final experiments.
+- Overall, the experiments demonstrate that model architecture, training configuration, dataset scale, and available computational resources all played an important role in the observed results, while providing practical experience with several modern object-detection approaches for SVHN.
+## Technologies
+- Python
+- PyTorch
+- Hugging Face Transformers
+- Hugging Face Datasets
+- TorchMetrics
+- MLflow
+- Azure Machine Learning
+- YOLOv8
+- SSDLite
+- Faster R-CNN
+- DETR
+- Git / GitHub
+- Project Scope
+
+This repository contains the code, experiment configurations, notebooks, Azure ML workflow, evaluation components, and documentation developed for the Deep Learning course project.
+
+The focus is on scientific experimentation and analysis of object-detection approaches, rather than production deployment. The experiments were designed to investigate model behaviour under practical computational constraints and to understand the impact of architecture and training configuration on SVHN object-detection performance.
