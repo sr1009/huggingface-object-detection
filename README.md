@@ -48,7 +48,7 @@ The following table summarizes the best completed configuration obtained for eac
 | DETR ResNet-50 — Baseline | RTX 3050 Ti | 15.1 h | 1 | 4 | 0.0086 | 0.0197 | 0.0056 |
 | YOLOv8 | Tesla T4 | 31.82 min | 10 | 16 | 0.2942 | 0.6989 | 0.1786 |
 | SSDLite | Tesla T4 | 50.28 min | 10 | 8 | 0.2566 | 0.6414 | 0.1382 |
-| Faster R-CNN ResNet-50 | Tesla T4 | 55.68 min | 5 | 4 | 0.3150 | 0.7400 | 0.1940 |
+| Faster R-CNN ResNet-50 | Tesla T4 | 55.68 min | 5 | 4 | 0.3153 | 0.7408 | 0.1943 |
 | DETR ResNet-50 — Final | — | — | 10 | 4 | **0.4230** | **0.7780** | **0.3260** |
 
 These results represent the best completed experiments obtained by the team. The experiments were not performed under identical computational conditions: training time, number of epochs, dataset size, batch size, learning rate, and available GPU resources varied between models.
