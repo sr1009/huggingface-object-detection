@@ -75,61 +75,54 @@ The second experiment increased both the amount of training data and the trainin
 
 The purpose of this experiment was to investigate whether DETR performance could be improved by providing substantially more training data and a longer optimization period.
 
----
 
-## Results
+## Notebooks
 
-The following table summarizes the reported experiments.
+- `Notebooks/01_eda_svhn.ipynb` – Exploratory Data Analysis
+- `Notebooks/02_smoke_test.ipynb` – Dataset and pipeline smoke tests
+- `Notebooks/03_yolov8_ssdlite.ipynb` – YOLOv8 and SSDLite experiments
+- `Notebooks/04_faster_rcnn.ipynb` – Faster R-CNN experiments
 
-| Specification | YOLOv8 | SSDLite | Faster R-CNN ResNet-50 | DETR ResNet-50 Stage 1 | DETR ResNet-50 Baseline | DETR ResNet-50 Final |
-|---|---:|---:|---:|---:|---:|---:|
-| GPU | NVIDIA Tesla T4 | NVIDIA Tesla T4 | NVIDIA Tesla T4 | RTX 3050 Ti | GeForce RTX 3050 Ti | GeForce RTX 4070 |
-| Training Time | 31.82 min | 50.28 min | 55.68 min | 8.2 hrs | 15.1 hrs | 10 hrs |
-| Training Split | 3,500 | 3,500 | 3,000 | 3,500 | 30,061 | 30,061 |
-| Validation Split | 750 | 750 | 750 | 750 | 3,341 | 3,341 |
-| Epochs | 10 | 10 | 5 | 5 | 1 | 10 |
-| Batch Size | 16 | 8 | 4 | 4 | 4 | 4 |
-| Learning Rate | 0.000714 | 0.001 | 0.002 | 0.0001 | 0.00001 | 0.0001 |
-| Weight Decay | 0.0005 | 0.01 | 0.005 | 0.0001 | 0.0001 | 0.0001 |
-| mAP | 0.2942 | 0.2566 | 0.3153 | 0.421 | 0.0086 | 0.423 |
-| mAP50 | 0.6989 | 0.6414 | 0.7408 | 0.744 | 0.0197 | 0.778 |
-| mAP75 | 0.1786 | 0.1382 | 0.1943 | 0.211 | 0.0056 | 0.326 |
+## Experiments
 
-### Interpretation
+The experiments were conducted in two stages:
 
-The Stage 1 experiments provided a practical comparison between several object-detection architectures under a limited training budget.
+1. **Model comparison** using reduced training and validation subsets.
+2. **Final DETR experiment** using the full training split and 10 epochs.
 
-The DETR Stage 1 experiment achieved:
+Performance was evaluated using:
 
-- **mAP:** 0.421
-- **mAP50:** 0.744
-- **mAP75:** 0.211
+- mAP
+- mAP@50
+- mAP@75
 
-This provided the basis for selecting DETR for the more extensive second-stage experiment.
+### Results
 
-The final DETR experiment used the full reported training and validation splits and increased training from 5 to 10 epochs while using a learning rate of `0.0001` and weight decay of `0.0001`.
+| Model | mAP | mAP@50 | mAP@75 |
+|---|---:|---:|---:|
+| YOLOv8 | 0.2942 | 0.6989 | 0.1786 |
+| SSDLite | 0.2566 | 0.6414 | 0.1382 |
+| Faster R-CNN | 0.3153 | 0.7408 | 0.1943 |
+| DETR – Stage 1 | 0.421 | 0.744 | 0.211 |
+| DETR – Final | 0.423 | 0.778 | 0.326 |
 
-The final DETR results were:
+## Azure Machine Learning
 
-- **mAP:** 0.423
-- **mAP50:** 0.778
-- **mAP75:** 0.326
+Azure Machine Learning was used for cloud-based DETR training, experiment tracking, and evaluation.
 
-The original DETR baseline is also retained as a reference point. It used one epoch, the full dataset, and a learning rate of `0.00001`, resulting in:
+Azure-related files are located in:
 
-- **mAP:** 0.0086
-- **mAP50:** 0.0197
-- **mAP75:** 0.0056
+`azureml/`
 
-These results illustrate the substantial effect that training configuration and experimental setup can have on DETR performance.
-
----
-
-## Model Implementations
-
-### DETR Baseline
-
-The baseline implementation uses:
+## Repository Structure
 
 ```text
-facebook/detr-resnet-50
+huggingface-object-detection/
+├── DETR_BaselineModel/
+├── DETR_FinalModel/
+├── Notebooks/
+├── azureml/
+├── docs/
+├── README.md
+├── requirements.txt
+└── environment.yml
