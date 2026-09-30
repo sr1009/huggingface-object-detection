@@ -2,6 +2,9 @@
 
 This project investigates modern deep-learning approaches for multi-object digit detection on the **SVHN (Street View House Numbers)** dataset. The project compares several object-detection architectures and then performs a more extensive experiment using DETR ResNet-50.
 
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/09bf7f06-ff08-4d78-b0d4-0d7d02f35995" />
+
+
 The main objective was to study how **model architecture, hyperparameter configuration, dataset scale, training duration, and computational resources** affect object-detection performance.
 
 ---
