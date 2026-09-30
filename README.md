@@ -153,7 +153,8 @@ huggingface-object-detection/
 - Faster R-CNN
 - DETR
 - Git / GitHub
-- Project Scope
+
+##Project Scope
 
 This repository contains the code, experiment configurations, notebooks, Azure ML workflow, evaluation components, and documentation developed for the Deep Learning course project.
 
