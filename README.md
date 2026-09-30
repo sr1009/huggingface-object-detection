@@ -71,3 +71,125 @@ huggingface-object-detection/
 ├── requirements.txt
 ├── environment.yml
 └── .gitignore
+```
+## Running the Project
+
+Install the required dependencies:
+
+\`\`\`bash
+pip install -r requirements.txt
+\`\`\`
+
+Run the main training script:
+
+\`\`\`bash
+python scripts/train.py
+\`\`\`
+
+Baseline DETR configuration file:
+
+\`\`\`
+configs/baseline.yaml
+\`\`\`
+
+## Baseline Configuration
+
+\`\`\`yaml
+model:
+  name: facebook/detr-resnet-50
+  num_labels: 10
+
+training:
+  epochs: 1
+  batch_size: 4
+  learning_rate: 0.00001
+  weight_decay: 0.0001
+
+seed: 42
+\`\`\`
+
+## Notebooks
+
+Exploratory data analysis:
+
+\`\`\`
+notebooks/01_eda_svhn.ipynb
+\`\`\`
+
+Prediction visualization:
+
+\`\`\`
+scripts/visualize_predictions.py
+\`\`\`
+
+---
+
+## Azure Machine Learning
+
+Azure Machine Learning was used to run the DETR deep‑learning training pipeline remotely using the SVHN dataset and a managed training environment.
+
+The workflow included:
+
+- dataset access  
+- environment management  
+- training execution  
+- MLflow tracking  
+- checkpoint handling  
+
+The DETR training pipeline was successfully executed on Azure ML.
+
+Due to GPU quota limitations in the Azure for Students subscription, the main Azure experiment ran on CPU compute. Longer GPU experiments were performed using local and team GPU resources.
+
+Azure ML validation scripts:
+
+\`\`\`
+azureml/
+├── data_test/
+├── env_test/
+└── smoke_test/
+\`\`\`
+
+---
+
+## Reproducibility
+
+The project uses configuration files and fixed random seeds to ensure reproducible experiments.  
+The main DETR configuration (seed = 42) is stored in:
+
+\`\`\`
+configs/baseline.yaml
+\`\`\`
+
+The training pipeline includes:
+
+- dataset preparation  
+- preprocessing  
+- model initialization  
+- training  
+- validation  
+- metric calculation  
+- checkpointing  
+- experiment tracking  
+
+---
+
+## Limitations
+
+Experiments were constrained by available computational resources. GPU availability differed between team members, and Azure GPU quota was unavailable under the Azure for Students subscription.
+
+Models were therefore not trained under identical conditions. Reported results represent the best completed experiments for each architecture rather than a strictly controlled benchmark.
+
+---
+
+## Technologies
+
+Python · PyTorch · Torchvision · Hugging Face Transformers · Hugging Face Datasets · TorchMetrics · MLflow · Azure Machine Learning · Jupyter · Git/GitHub
+
+---
+
+## Authors
+
+Team project for **Deep Learning with Python — Course Project 2026**.
+
+The team investigated **DETR**, **YOLOv8**, **SSDLite**, and **Faster R‑CNN** for multi‑object digit detection on **SVHN**.
+
