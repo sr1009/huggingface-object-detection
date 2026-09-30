@@ -1,195 +1,135 @@
 # SVHN Object Detection with Deep Learning
 
-## Overview
+This project investigates modern deep-learning approaches for multi-object digit detection on the **SVHN (Street View House Numbers)** dataset. The project compares several object-detection architectures and then performs a more extensive experiment using DETR ResNet-50.
 
-This project investigates multi-object digit detection using the **Street View House Numbers (SVHN)** dataset. The goal is to detect individual digits in street-view images and predict both their digit class (0–9) and corresponding bounding box.
+The main objective was to study how **model architecture, hyperparameter configuration, dataset scale, training duration, and computational resources** affect object-detection performance.
 
-The project compares four object-detection approaches:
+---
 
-- DETR with a ResNet-50 backbone
-- Faster R-CNN with a ResNet-50 FPN backbone
-- YOLOv8
-- SSDLite
+## Project Overview
 
-The work covers exploratory data analysis, preprocessing, model training, validation, evaluation, checkpointing, experiment tracking, and deployment of the training workflow on Azure Machine Learning.
+The project uses the SVHN `full_numbers` dataset configuration, where each image may contain multiple digits together with their corresponding bounding boxes.
 
-This project was developed for the **Deep Learning with Python — Course Project 2026**.
+The team experimented with several object-detection approaches:
+
+- **YOLOv8**
+- **SSDLite**
+- **Faster R-CNN ResNet-50**
+- **DETR ResNet-50**
+
+The workflow was divided into two main experimental stages:
+
+1. **Stage 1 – Model comparison and hyperparameter experimentation**
+2. **Stage 2 – Focused full-data DETR experiment**
+
+The implementation uses PyTorch and Hugging Face components, with Azure Machine Learning used for cloud-based experimentation and MLflow used for experiment tracking.
+
+---
 
 ## Dataset
 
-The project uses the `ufldl-stanford/svhn` dataset with the `full_numbers` configuration from Hugging Face.
+The project uses the public **SVHN** dataset through Hugging Face:
 
-The dataset contains street-view images with annotations for individual digits and their bounding boxes. The available data consists of 33,402 training images, 13,068 test images, and 202,353 additional images.
+- Dataset: `ufldl-stanford/svhn`
+- Configuration: `full_numbers`
+- Task: Multi-object digit detection
+- Number of classes: **10**
+- Classes: digits **0–9**
 
-For the main DETR experiments, the original training set was divided into 90% training and 10% validation using a fixed random seed of 42. The official test set was kept separate.
+The `full_numbers` configuration was used because the objective of the project is object detection rather than single-digit image classification.
 
-## Models
+---
 
-The main implementation uses **DETR with a ResNet-50 backbone**, initialized from the pretrained `facebook/detr-resnet-50` model and adapted to the 10 SVHN digit classes.
+## Experimental Methodology
 
-The project also includes experiments with Faster R-CNN, YOLOv8, and SSDLite in order to compare different object-detection architectures.
+### Stage 1 — Model Comparison
 
-## Evaluation
+The first stage evaluated multiple object-detection architectures using a constrained dataset and training budget.
 
-Models are evaluated using standard object-detection metrics:
+The common experimental setting for this comparison was:
 
-- **mAP**
-- **mAP50** — Average Precision at IoU 0.50
-- **mAP75** — Average Precision at IoU 0.75
+- Training images: **3,500**
+- Validation images: **750**
+- Epochs: **5**
+- Batch size: **4**
+- Dataset: SVHN `full_numbers`
 
-These metrics measure both detection accuracy and bounding-box localization quality.
+The learning rate and weight decay were **not forced to be identical across models**.
+
+Instead, these optimization hyperparameters were adjusted for each architecture because different object-detection models can respond differently to optimization settings. The purpose of this experimentation was to identify a suitable configuration and obtain good performance for each individual model.
+
+The resulting Stage 1 configurations and performance are reported below.
+
+### Stage 2 — Focused DETR Experiment
+
+Following the initial model comparison, **DETR ResNet-50** was selected for a more extensive experiment based on its Stage 1 results.
+
+The second experiment increased both the amount of training data and the training duration:
+
+- Training images: **30,061**
+- Validation images: **3,341**
+- Epochs: **10**
+- Batch size: **4**
+- Learning rate: **0.0001**
+- Weight decay: **0.0001**
+
+The purpose of this experiment was to investigate whether DETR performance could be improved by providing substantially more training data and a longer optimization period.
+
+---
 
 ## Results
 
-The following table summarizes the best completed configuration obtained for each model during the project.
+The following table summarizes the reported experiments.
 
-| Model | GPU | Time | Epochs | Batch | mAP | mAP50 | mAP75 |
-|---|---|---:|---:|---:|---:|---:|---:|
-| DETR ResNet-50 — Baseline | RTX 3050 Ti | 15.1 h | 1 | 4 | 0.0086 | 0.0197 | 0.0056 |
-| YOLOv8 | Tesla T4 | 31.82 min | 10 | 16 | 0.2942 | 0.6989 | 0.1786 |
-| SSDLite | Tesla T4 | 50.28 min | 10 | 8 | 0.2566 | 0.6414 | 0.1382 |
-| Faster R-CNN ResNet-50 | Tesla T4 | 55.68 min | 5 | 4 | 0.3153 | 0.7408 | 0.1943 |
-| DETR ResNet-50 — Final | — | — | 10 | 4 | **0.4230** | **0.7780** | **0.3260** |
+| Specification | YOLOv8 | SSDLite | Faster R-CNN ResNet-50 | DETR ResNet-50 Stage 1 | DETR ResNet-50 Baseline | DETR ResNet-50 Final |
+|---|---:|---:|---:|---:|---:|---:|
+| GPU | NVIDIA Tesla T4 | NVIDIA Tesla T4 | NVIDIA Tesla T4 | RTX 3050 Ti | GeForce RTX 3050 Ti | GeForce RTX 4070 |
+| Training Time | 31.82 min | 50.28 min | 55.68 min | 8.2 hrs | 15.1 hrs | 10 hrs |
+| Training Split | 3,500 | 3,500 | 3,000 | 3,500 | 30,061 | 30,061 |
+| Validation Split | 750 | 750 | 750 | 750 | 3,341 | 3,341 |
+| Epochs | 10 | 10 | 5 | 5 | 1 | 10 |
+| Batch Size | 16 | 8 | 4 | 4 | 4 | 4 |
+| Learning Rate | 0.000714 | 0.001 | 0.002 | 0.0001 | 0.00001 | 0.0001 |
+| Weight Decay | 0.0005 | 0.01 | 0.005 | 0.0001 | 0.0001 | 0.0001 |
+| mAP | 0.2942 | 0.2566 | 0.3153 | 0.421 | 0.0086 | 0.423 |
+| mAP50 | 0.6989 | 0.6414 | 0.7408 | 0.744 | 0.0197 | 0.778 |
+| mAP75 | 0.1786 | 0.1382 | 0.1943 | 0.211 | 0.0056 | 0.326 |
 
-These results represent the best completed experiments obtained by the team. The experiments were not performed under identical computational conditions: training time, number of epochs, dataset size, batch size, learning rate, and available GPU resources varied between models.
+### Interpretation
 
-## Repository Structure
+The Stage 1 experiments provided a practical comparison between several object-detection architectures under a limited training budget.
+
+The DETR Stage 1 experiment achieved:
+
+- **mAP:** 0.421
+- **mAP50:** 0.744
+- **mAP75:** 0.211
+
+This provided the basis for selecting DETR for the more extensive second-stage experiment.
+
+The final DETR experiment used the full reported training and validation splits and increased training from 5 to 10 epochs while using a learning rate of `0.0001` and weight decay of `0.0001`.
+
+The final DETR results were:
+
+- **mAP:** 0.423
+- **mAP50:** 0.778
+- **mAP75:** 0.326
+
+The original DETR baseline is also retained as a reference point. It used one epoch, the full dataset, and a learning rate of `0.00001`, resulting in:
+
+- **mAP:** 0.0086
+- **mAP50:** 0.0197
+- **mAP75:** 0.0056
+
+These results illustrate the substantial effect that training configuration and experimental setup can have on DETR performance.
+
+---
+
+## Model Implementations
+
+### DETR Baseline
+
+The baseline implementation uses:
 
 ```text
-huggingface-object-detection/
-├── azureml/        Azure ML tests and cloud execution
-├── configs/        Experiment configurations
-├── docs/           Project documentation
-├── notebooks/      EDA and exploratory experiments
-├── scripts/        Training and visualization scripts
-├── src/
-│   ├── data/       Data loading and preprocessing
-│   ├── models/     Model implementations
-│   ├── training/   Training, checkpointing and MLflow
-│   └── evaluation/ Detection metrics
-├── README.md
-├── requirements.txt
-├── environment.yml
-└── .gitignore
-```
-## Running the Project
-
-Install the required dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run the main training script:
-
-```bash
-python scripts/train.py
-```
-
-Baseline DETR configuration file:
-
-```
-configs/baseline.yaml
-```
-
-## Baseline Configuration
-
-```yaml
-model:
-  name: facebook/detr-resnet-50
-  num_labels: 10
-
-training:
-  epochs: 1
-  batch_size: 4
-  learning_rate: 0.00001
-  weight_decay: 0.0001
-
-seed: 42
-```
-
-## Notebooks
-
-Exploratory data analysis:
-
-```
-notebooks/01_eda_svhn.ipynb
-```
-
-Prediction visualization:
-
-```
-scripts/visualize_predictions.py
-```
-
----
-
-## Azure Machine Learning
-
-Azure Machine Learning was used to run the DETR deep‑learning training pipeline remotely using the SVHN dataset and a managed training environment.
-
-The workflow included:
-
-- dataset access  
-- environment management  
-- training execution  
-- MLflow tracking  
-- checkpoint handling  
-
-The DETR training pipeline was successfully executed on Azure ML.
-
-Due to GPU quota limitations in the Azure for Students subscription, the main Azure experiment ran on CPU compute. Longer GPU experiments were performed using local and team GPU resources.
-
-Azure ML validation scripts:
-
-```
-azureml/
-├── data_test/
-├── env_test/
-└── smoke_test/
-```
-
----
-
-## Reproducibility
-
-The project uses configuration files and fixed random seeds to ensure reproducible experiments.  
-The main DETR configuration (seed = 42) is stored in:
-
-```
-configs/baseline.yaml
-```
-
-The training pipeline includes:
-
-- dataset preparation  
-- preprocessing  
-- model initialization  
-- training  
-- validation  
-- metric calculation  
-- checkpointing  
-- experiment tracking  
-
----
-
-## Limitations
-
-Experiments were constrained by available computational resources. GPU availability differed between team members, and Azure GPU quota was unavailable under the Azure for Students subscription.
-
-Models were therefore not trained under identical conditions. Reported results represent the best completed experiments for each architecture rather than a strictly controlled benchmark.
-
----
-
-## Technologies
-
-Python · PyTorch · Torchvision · Hugging Face Transformers · Hugging Face Datasets · TorchMetrics · MLflow · Azure Machine Learning · Jupyter · Git/GitHub
-
----
-
-## Authors
-
-Team project for **Deep Learning with Python — Course Project 2026**.
-
-The team investigated **DETR**, **YOLOv8**, **SSDLite**, and **Faster R‑CNN** for multi‑object digit detection on **SVHN**.
-
+facebook/detr-resnet-50
